@@ -6,7 +6,7 @@
 /*   By: waelhamd <waelhamd@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/01 10:00:37 by waelhamd          #+#    #+#             */
-/*   Updated: 2022/12/08 17:50:34 by waelhamd         ###   ########.fr       */
+/*   Updated: 2022/12/31 16:27:22 by waelhamd         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,7 +111,7 @@ void	init_player(t_player *player)
 	player->radius = 5;
 	player->turnDirection = 0;// -1 or 1
 	player->walkDirection = 0;// -1 or 1
-	player->rotationAngel = M_PI / 2;
+	player->rotationAngel = M_PI;
 	player->moveSpeed = 5;
 	player->rotationSpeed = 2 * (M_PI / 180);
 }
@@ -123,11 +123,29 @@ int	collision(int x, int y)
 	
 	map_x = (int)round(x / TILE_SIZE);
 	map_y = (int)round(y / TILE_SIZE);
-	printf("map_x:%d  \nmap_y:%d  \n", map_x, map_y);
+	//printf("map_x:%d  \nmap_y:%d  \n", map_x, map_y);
 	if (map[map_y][map_x] == 1)
 		return 1;
 	return 0;
 }
+
+
+
+void	create_field_of_view(t_player *player, t_data *img)
+{
+	int columnid;
+	double rayangle;
+	
+	columnid = 0;
+	rayangle = player->rotationAngel - (FOV_ANGLE / 2);
+	while (rayangle <= player->rotationAngel + (FOV_ANGLE / 2))
+	{
+		bresenham(player->x, player->y, player->x + cos(rayangle) * 50, player->y + sin(rayangle) * 50, img,0xff0000);
+		rayangle += FOV_ANGLE / NUM_RAYS;
+	}
+}
+
+
 
 void draw_player(t_data *img, t_player *player)
 {
@@ -143,7 +161,7 @@ void draw_player(t_data *img, t_player *player)
 	move_step = player->walkDirection * player->moveSpeed;
 	new_x = player->x + move_step * cos(player->rotationAngel);
 	new_y = player->y + move_step * sin(player->rotationAngel);
-	printf("%d\n", collision(new_x, new_y));
+	// printf("%d\n", collision(new_x, new_y));
 	if (collision(new_x, new_y) == 0)
 	{
 		player->x = new_x;
@@ -163,7 +181,7 @@ void draw_player(t_data *img, t_player *player)
 		r+=1;
 	}
 	player->rotationAngel += player->turnDirection * player->rotationSpeed;
-	bresenham(player->x, player->y, player->x+cos(player->rotationAngel)*50, player->y +sin(player->rotationAngel)*50, img,0xff0000);
+	create_field_of_view(player, img);
 }
 
 void key_pressed(int keycode, t_data *img)

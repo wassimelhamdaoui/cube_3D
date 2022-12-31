@@ -6,21 +6,23 @@
 /*   By: waelhamd <waelhamd@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/01 10:00:58 by waelhamd          #+#    #+#             */
-/*   Updated: 2022/12/08 17:35:03 by waelhamd         ###   ########.fr       */
+/*   Updated: 2022/12/31 16:58:13 by waelhamd         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CUB3D_H
 #define CUB3D_H
 #include"mlx.h"
+#include"get_next_line.h"
 
 #define TILE_SIZE 50
 #define LINE 10
 #define COLON 10
-#define WINDOW_WIDTH COLON * TILE_SIZE
-#define WINDOW_HEIGHT LINE * TILE_SIZE
-#define FOV_ANGLE 60 * (M_PI / 180)
-#define NUM_RAYS 320
+#define WINDOW_WIDTH (COLON * TILE_SIZE)
+#define WINDOW_HEIGHT (LINE * TILE_SIZE)
+#define FOV_ANGLE (60 * (M_PI / 180))
+#define WALL_STRIP_WIDTH 5//mazal ma khdemna bih
+#define NUM_RAYS WINDOW_WIDTH
 
 
 int map[LINE][COLON] = {
