@@ -6,7 +6,7 @@
 /*   By: waelhamd <waelhamd@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/01 10:00:37 by waelhamd          #+#    #+#             */
-/*   Updated: 2023/01/13 04:51:07 by waelhamd         ###   ########.fr       */
+/*   Updated: 2023/01/14 18:18:29 by waelhamd         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,22 +90,26 @@ void draw_rectangle(t_data *img, int x, int y, int color)
 	}
 }
 
-void map2D(t_data *img)
+void map2D(t_data *img, t_data *mini)
 {
 	int j;
 	int i;
 	int color;
+	int mintil = MINI_HEIGHT / img->line;
+	mini->img = mlx_new_image(img->mlx, 100, 100);
+	mini->addr = mlx_get_data_addr(mini->img, &mini->bits_per_pixel, &mini->line_length,
+								&mini->endian);
 
 	i = 0;
-	while(i*TILE_SIZE < img->line * TILE_SIZE)
+	while(i*mintil < img->line * mintil)
 	{
 		j = 0;
-		while(j*TILE_SIZE < img->colone * TILE_SIZE)
+		while(j*mintil < img->colone * mintil)
 		{
 			color = (img->map[i][j] == '1') ?  0x326656: 0x000000;
 			if(img->map[i][j] == ' ')
 				color = 0x000000;
-			draw_rectangle(img, j*TILE_SIZE, i*TILE_SIZE, color);
+			draw_rectangle(img, j*mintil, i*mintil, color);
 			j++;
 		}
 		i++;
@@ -114,35 +118,30 @@ void map2D(t_data *img)
 
 void	init_textures(t_data *img, t_elemts el)
 {
-	
-	img->textures[0].texture_img = mlx_xpm_file_to_image(img->mlx, el.parse.no.path, &img->textures[0].width, &img->textures[0].height );
+	img->textures[0].texture_img = mlx_xpm_file_to_image(img->mlx, el.parse.no.path, &img->textures[0].width, &img->textures[0].height);
 	img->textures[0].texture_addr = (int *)mlx_get_data_addr(img->textures[0].texture_img, &img->textures[0].bits_per_pixel, &img->textures[0].line_length, &img->textures[0].endian);
 	
-	img->textures[1].texture_img = mlx_xpm_file_to_image(img->mlx, el.parse.ea.path, &img->textures[1].width, &img->textures[1].height );
+	img->textures[1].texture_img = mlx_xpm_file_to_image(img->mlx, el.parse.ea.path, &img->textures[1].width, &img->textures[1].height);
 	img->textures[1].texture_addr = (int *)mlx_get_data_addr(img->textures[1].texture_img, &img->textures[1].bits_per_pixel, &img->textures[1].line_length, &img->textures[1].endian);
 
-	img->textures[2].texture_img = mlx_xpm_file_to_image(img->mlx, el.parse.so.path, &img->textures[2].width, &img->textures[2].height );
+	img->textures[2].texture_img = mlx_xpm_file_to_image(img->mlx, el.parse.so.path, &img->textures[2].width, &img->textures[2].height);
 	img->textures[2].texture_addr = (int *)mlx_get_data_addr(img->textures[2].texture_img, &img->textures[2].bits_per_pixel, &img->textures[2].line_length, &img->textures[2].endian);
 
-	img->textures[3].texture_img = mlx_xpm_file_to_image(img->mlx, el.parse.we.path, &img->textures[3].width, &img->textures[3].height );
+	img->textures[3].texture_img = mlx_xpm_file_to_image(img->mlx, el.parse.we.path, &img->textures[3].width, &img->textures[3].height);
 	img->textures[3].texture_addr = (int *)mlx_get_data_addr(img->textures[3].texture_img, &img->textures[3].bits_per_pixel, &img->textures[3].line_length, &img->textures[3].endian);
-
 }
 
 void	init_player(t_data *data, t_elemts el)
 {
 	
-	data->player.x = (el.x * TILE_SIZE); // player cordonne x
-	data->player.y = (el.y * TILE_SIZE); // player cordonne y
-	data->player.p_player = el.p_player; // player possition
+	data->player.x = (el.x * TILE_SIZE) + TILE_SIZE/2;
+	data->player.y = (el.y * TILE_SIZE) + TILE_SIZE/2;
+	data->player.p_player = el.p_player;
 	data->map = el.map;
 	 data->colone = ft_strlen(el.map[0]);
 	 data->line = twodlen(el.map);
 
 	data->player.radius = 5;
-	data->player.turnDirection = 0;// -1 or 1
-	data->player.walkDirection = 0;// -1 or 1
-	data->player.sideDirection = 0;
 	if (el.p_player == 'N')
 		data->player.rotationAngel = 3*M_PI/2;
 	else if(el.p_player == 'S')
@@ -313,25 +312,49 @@ void DDA(double X0, double Y0, double X1, double Y1, t_data *data ,int col)
     }
 }
 
-void finding_project_wall(t_data *img, int id)
+int	check_text(t_data *img, int id)
 {
-	double correct_d;
-	int	texture_offset_x;
-	int	texture_offset_y;
-
-	correct_d = 0;
-	img->rays[id].project_player_dist = ((WINDOW_WIDTH/2) / tan(30 * (M_PI/180)));
-	if (img->rays[id].vertical_d > img->rays[id].horizontal_d)
+	if (img->rays[id].ray_angle > 0 && img->rays[id].ray_angle <= M_PI_2)
 	{
-		correct_d = img->rays[id].horizontal_d * cos(img->rays[id].ray_angle - img->player.rotationAngel);
-		img->rays[id].project_wall_height = img->rays[id].project_player_dist * TILE_SIZE / correct_d;
-		// texture_offset_x = 
+		if (img->rays[id].vertical_d > img->rays[id].horizontal_d)
+			return(2);
+		else
+			return(1);
+	}
+	else if (img->rays[id].ray_angle > M_PI_2 && img->rays[id].ray_angle <= M_PI)
+	{
+		if (img->rays[id].vertical_d > img->rays[id].horizontal_d)
+			return(2);
+		else
+			return(3);
+	}
+	else if (img->rays[id].ray_angle > M_PI && img->rays[id].ray_angle <= (3 * M_PI / 2))
+	{
+		if (img->rays[id].vertical_d > img->rays[id].horizontal_d)
+			return(0);
+		else
+			return(3);
 	}
 	else
 	{
-		correct_d = img->rays[id].vertical_d * cos(img->rays[id].ray_angle - img->player.rotationAngel);
-		img->rays[id].project_wall_height = img->rays[id].project_player_dist * TILE_SIZE / correct_d;
+		if (img->rays[id].vertical_d > img->rays[id].horizontal_d)
+			return(0);
+		else
+			return(1);
 	}
+	return(0);
+}
+
+int	ft_convert(int a, int b, int c)
+{
+	
+}
+
+
+void rendr_zab(t_data *img, int id, int	texture_offset_x)
+{
+	int	texture_offset_y;
+	int distance_from_top;
 	int i = (WINDOW_HEIGHT - img->rays[id].project_wall_height) / 2;
 	int j = 0;
 	while (j < i)
@@ -342,7 +365,9 @@ void finding_project_wall(t_data *img, int id)
 	}
 	while (i < img->rays[id].project_wall_height + ((WINDOW_HEIGHT - img->rays[id].project_wall_height) / 2))
 	{
-		my_mlx_pixel_put(img, id, i, 0xf11100);
+		distance_from_top = i + (img->rays[id].project_wall_height/2 - WINDOW_HEIGHT/2);
+		texture_offset_y = distance_from_top * ((float)img->textures->height / img->rays[id].project_wall_height);
+		my_mlx_pixel_put(img, id, i, img->textures[check_text(img, id)].texture_addr[(img->textures->width * texture_offset_y) + texture_offset_x]);
 		i++;
 	}
 	while (i < WINDOW_HEIGHT)
@@ -351,6 +376,54 @@ void finding_project_wall(t_data *img, int id)
 		my_mlx_pixel_put(img, id, i, 0xffffFf);
 		i++;
 	}
+}
+
+void finding_project_wall(t_data *img, int id)
+{
+	double correct_d;
+	int	texture_offset_x;
+	// int	texture_offset_y;
+	int distance_from_top;
+
+	correct_d = 0;
+	img->rays[id].project_player_dist = ((WINDOW_WIDTH/2) / tan(30 * (M_PI/180)));
+	if (img->rays[id].vertical_d > img->rays[id].horizontal_d)
+	{
+		correct_d = img->rays[id].horizontal_d * cos(img->rays[id].ray_angle - img->player.rotationAngel);
+		img->rays[id].project_wall_height = img->rays[id].project_player_dist * TILE_SIZE / correct_d;
+		texture_offset_x = (img->rays[id].x_hori_wall / TILE_SIZE - (int)img->rays[id].x_hori_wall / TILE_SIZE) * img->textures->width;
+		rendr_zab(img, id, texture_offset_x);
+	}
+	else
+	{
+		correct_d = img->rays[id].vertical_d * cos(img->rays[id].ray_angle - img->player.rotationAngel);
+		img->rays[id].project_wall_height = img->rays[id].project_player_dist * TILE_SIZE / correct_d;
+		texture_offset_x = (img->rays[id].y_vert_wall / TILE_SIZE - (int)img->rays[id].y_vert_wall / TILE_SIZE) * img->textures->width;
+		rendr_zab(img, id, texture_offset_x);
+	}
+
+	
+	// int i = (WINDOW_HEIGHT - img->rays[id].project_wall_height) / 2;
+	// int j = 0;
+	// while (j < i)
+	// {
+		
+	// 	my_mlx_pixel_put(img, id, j, 0xfff000);
+	// 	j++;
+	// }
+	// while (i < img->rays[id].project_wall_height + ((WINDOW_HEIGHT - img->rays[id].project_wall_height) / 2))
+	// {
+	// 	distance_from_top = i + (img->rays[id].project_wall_height/2 - WINDOW_HEIGHT/2);
+	// 	texture_offset_y = distance_from_top * ((float)img->textures->height / img->rays[id].project_wall_height);
+	// 	my_mlx_pixel_put(img, id, i, img->textures[1].texture_addr[(img->textures->width * texture_offset_y) + texture_offset_x]);
+	// 	i++;
+	// }
+	// while (i < WINDOW_HEIGHT)
+	// {
+		
+	// 	my_mlx_pixel_put(img, id, i, 0xffffFf);
+	// 	i++;
+	// }
 }
 
 
@@ -497,6 +570,7 @@ int	main(int ac, char **av)
 {
 
 	t_data	img;
+	t_data mini;
 	t_elemts el;
 
 	img.mlx = mlx_init();
@@ -508,22 +582,9 @@ int	main(int ac, char **av)
 	
 	init_player(&img, el);
 	init_textures(&img, el);
-	map2D(&img);
+	map2D(&img, &mini);
 	draw_player(&img);
-	
-	/*
-	player movement :
-	(x,y)
-	radius;
-	turn_direction
-	walk_direction
-	rotational_Angel
-	move_speed = 3 like example it mean the number of pixels which i need to translat
-	rotation_speed = is the angel which i need to rotate the player
-	*/
 
-	
-	
 	int len = 0;
 	// for (int i = 0; i < 360; i++)
 	// {
@@ -536,10 +597,12 @@ int	main(int ac, char **av)
 	// }
 
 	mlx_put_image_to_window(img.mlx, img.mlx_win, img.img, 0, 0);
+	mlx_put_image_to_window(img.mlx, img.mlx_win, mini.img, 0, 0);
 
 	
 	mlx_hook(img.mlx_win, 2 ,1L<<0 ,key_pressed, &img);//key press hook
 	mlx_hook(img.mlx_win,03 ,1L<<1 , key_release, &img);// key realas hook
 	mlx_loop_hook(img.mlx, key_handler, &img);
 	mlx_loop(img.mlx);
+	
 }

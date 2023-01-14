@@ -1,0 +1,4 @@
+*.o
+cub3d
+a.out
+test.c
