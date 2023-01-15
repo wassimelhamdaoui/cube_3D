@@ -6,7 +6,7 @@
 /*   By: waelhamd <waelhamd@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/01 10:00:58 by waelhamd          #+#    #+#             */
-/*   Updated: 2023/01/14 18:55:21 by waelhamd         ###   ########.fr       */
+/*   Updated: 2023/01/15 15:55:51 by waelhamd         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@
 # define DOWN 2
 # define RIGHT 3
 # define LEFT 4
-# define TILE_SIZE 40
+# define TILE_SIZE 50
 # define MINI_WIDTH 100
 # define MINI_HEIGHT 100
 # define WINDOW_WIDTH 1000

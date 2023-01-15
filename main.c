@@ -6,7 +6,7 @@
 /*   By: waelhamd <waelhamd@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/01 10:00:37 by waelhamd          #+#    #+#             */
-/*   Updated: 2023/01/14 18:18:29 by waelhamd         ###   ########.fr       */
+/*   Updated: 2023/01/15 15:52:12 by waelhamd         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -138,9 +138,9 @@ void	init_player(t_data *data, t_elemts el)
 	data->player.y = (el.y * TILE_SIZE) + TILE_SIZE/2;
 	data->player.p_player = el.p_player;
 	data->map = el.map;
-	 data->colone = ft_strlen(el.map[0]);
-	 data->line = twodlen(el.map);
-
+	data->colone = ft_strlen(el.map[0]);
+	data->line = twodlen(el.map);
+	data->parse = el.parse;
 	data->player.radius = 5;
 	if (el.p_player == 'N')
 		data->player.rotationAngel = 3*M_PI/2;
@@ -151,9 +151,9 @@ void	init_player(t_data *data, t_elemts el)
 	else if(el.p_player == 'W')
 		data->player.rotationAngel = M_PI;
 		
-	data->player.moveSpeed = 3;
-	data->player.rotationSpeed = 3 * (M_PI / 180);
-	}
+	data->player.moveSpeed = 1;
+	data->player.rotationSpeed = 1 * (M_PI / 180);
+}
 
 int	collision(double x, double y, char **map)
 {
@@ -345,10 +345,10 @@ int	check_text(t_data *img, int id)
 	return(0);
 }
 
-int	ft_convert(int a, int b, int c)
-{
+// int	ft_convert(int a, int b, int c)
+// {
 	
-}
+// }
 
 
 void rendr_zab(t_data *img, int id, int	texture_offset_x)
@@ -360,7 +360,7 @@ void rendr_zab(t_data *img, int id, int	texture_offset_x)
 	while (j < i)
 	{
 		
-		my_mlx_pixel_put(img, id, j, 0xfff000);
+		my_mlx_pixel_put(img, id, j, img->parse.c.color);
 		j++;
 	}
 	while (i < img->rays[id].project_wall_height + ((WINDOW_HEIGHT - img->rays[id].project_wall_height) / 2))
@@ -373,7 +373,7 @@ void rendr_zab(t_data *img, int id, int	texture_offset_x)
 	while (i < WINDOW_HEIGHT)
 	{
 		
-		my_mlx_pixel_put(img, id, i, 0xffffFf);
+		my_mlx_pixel_put(img, id, i, img->parse.f.color);
 		i++;
 	}
 }
@@ -582,7 +582,7 @@ int	main(int ac, char **av)
 	
 	init_player(&img, el);
 	init_textures(&img, el);
-	map2D(&img, &mini);
+	// map2D(&img, &mini);
 	draw_player(&img);
 
 	int len = 0;
@@ -597,8 +597,6 @@ int	main(int ac, char **av)
 	// }
 
 	mlx_put_image_to_window(img.mlx, img.mlx_win, img.img, 0, 0);
-	mlx_put_image_to_window(img.mlx, img.mlx_win, mini.img, 0, 0);
-
 	
 	mlx_hook(img.mlx_win, 2 ,1L<<0 ,key_pressed, &img);//key press hook
 	mlx_hook(img.mlx_win,03 ,1L<<1 , key_release, &img);// key realas hook

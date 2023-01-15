@@ -6,7 +6,7 @@
 /*   By: waelhamd <waelhamd@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/31 16:40:49 by waelhamd          #+#    #+#             */
-/*   Updated: 2023/01/14 18:56:01 by waelhamd         ###   ########.fr       */
+/*   Updated: 2023/01/14 19:17:12 by waelhamd         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,7 +96,7 @@ int ft_check_color(char *check, t_color *color)
 	color->c = ft_check_valid_n(data[2]);
 	if(color->a == -1 ||  color->b == -1 || color->c == -1)
 		return(free2d(data), 0);
-	color->color = 
+	color->color = (color->a << 16) | (color->b << 8) | color->c;
 	free2d(data);
 	return(1);
 }
