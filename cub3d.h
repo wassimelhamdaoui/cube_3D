@@ -6,7 +6,7 @@
 /*   By: waelhamd <waelhamd@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/01 10:00:58 by waelhamd          #+#    #+#             */
-/*   Updated: 2023/01/15 15:55:51 by waelhamd         ###   ########.fr       */
+/*   Updated: 2023/01/16 20:30:32 by waelhamd         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,12 +29,12 @@
 # define S 1
 # define A 0
 # define D 2
+# define ESC 53
 
 # define UP 1
 # define DOWN 2
 # define RIGHT 3
 # define LEFT 4
-# define TILE_SIZE 50
 # define MINI_WIDTH 100
 # define MINI_HEIGHT 100
 # define WINDOW_WIDTH 1000
@@ -147,6 +147,8 @@ typedef struct	s_data
 	t_texture	textures[4];
 	t_player	player;
 }				t_data;
+
+int			tile_size;
 
 void		init_parse(t_parse *parse);
 void		free2d(char **tab);

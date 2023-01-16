@@ -6,7 +6,7 @@
 /*   By: waelhamd <waelhamd@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/01 10:00:37 by waelhamd          #+#    #+#             */
-/*   Updated: 2023/01/15 15:52:12 by waelhamd         ###   ########.fr       */
+/*   Updated: 2023/01/16 20:43:06 by waelhamd         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,53 +68,53 @@ void	bresenham(int x1,int y1,int x2, int y2, t_data *img, int color)
 	}
 }
 
-void draw_rectangle(t_data *img, int x, int y, int color)
-{
-	int ax_x;
-	int ax_y;
-	int i = y;
-	ax_x = x +TILE_SIZE;
-	ax_y = y+TILE_SIZE;
-	while(x <= ax_x)
-	{
-		y = i;
-		while(y <= ax_y)
-		{
-			if(y%TILE_SIZE == 0 || x%TILE_SIZE == 0)
-				my_mlx_pixel_put(img, x, y, 0x000000);
-			else
-			my_mlx_pixel_put(img, x, y, color);
-			y++;
-		}
-		x++;
-	}
-}
+// void draw_rectangle(t_data *img, int x, int y, int color)
+// {
+// 	int ax_x;
+// 	int ax_y;
+// 	int i = y;
+// 	ax_x = x +TILE_SIZE;
+// 	ax_y = y+TILE_SIZE;
+// 	while(x <= ax_x)
+// 	{
+// 		y = i;
+// 		while(y <= ax_y)
+// 		{
+// 			if(y%TILE_SIZE == 0 || x%TILE_SIZE == 0)
+// 				my_mlx_pixel_put(img, x, y, 0x000000);
+// 			else
+// 			my_mlx_pixel_put(img, x, y, color);
+// 			y++;
+// 		}
+// 		x++;
+// 	}
+// }
 
-void map2D(t_data *img, t_data *mini)
-{
-	int j;
-	int i;
-	int color;
-	int mintil = MINI_HEIGHT / img->line;
-	mini->img = mlx_new_image(img->mlx, 100, 100);
-	mini->addr = mlx_get_data_addr(mini->img, &mini->bits_per_pixel, &mini->line_length,
-								&mini->endian);
+// void map2D(t_data *img, t_data *mini)
+// {
+// 	int j;
+// 	int i;
+// 	int color;
+// 	int mintil = MINI_HEIGHT / img->line;
+// 	mini->img = mlx_new_image(img->mlx, 100, 100);
+// 	mini->addr = mlx_get_data_addr(mini->img, &mini->bits_per_pixel, &mini->line_length,
+// 								&mini->endian);
 
-	i = 0;
-	while(i*mintil < img->line * mintil)
-	{
-		j = 0;
-		while(j*mintil < img->colone * mintil)
-		{
-			color = (img->map[i][j] == '1') ?  0x326656: 0x000000;
-			if(img->map[i][j] == ' ')
-				color = 0x000000;
-			draw_rectangle(img, j*mintil, i*mintil, color);
-			j++;
-		}
-		i++;
-	}
-}
+// 	i = 0;
+// 	while(i*mintil < img->line * mintil)
+// 	{
+// 		j = 0;
+// 		while(j*mintil < img->colone * mintil)
+// 		{
+// 			color = (img->map[i][j] == '1') ?  0x326656: 0x000000;
+// 			if(img->map[i][j] == ' ')
+// 				color = 0x000000;
+// 			draw_rectangle(img, j*mintil, i*mintil, color);
+// 			j++;
+// 		}
+// 		i++;
+// 	}
+// }
 
 void	init_textures(t_data *img, t_elemts el)
 {
@@ -134,12 +134,18 @@ void	init_textures(t_data *img, t_elemts el)
 void	init_player(t_data *data, t_elemts el)
 {
 	
-	data->player.x = (el.x * TILE_SIZE) + TILE_SIZE/2;
-	data->player.y = (el.y * TILE_SIZE) + TILE_SIZE/2;
-	data->player.p_player = el.p_player;
-	data->map = el.map;
 	data->colone = ft_strlen(el.map[0]);
 	data->line = twodlen(el.map);
+	if(data->colone <= data->line)
+		tile_size = WINDOW_WIDTH/data->colone;
+	else
+		tile_size = WINDOW_HEIGHT/data->line;
+	data->player.moveSpeed = 1;
+	data->player.rotationSpeed = 3 * (M_PI / 180);
+	data->player.x = (el.x * tile_size) + tile_size/2;
+	data->player.y = (el.y * tile_size) + tile_size/2;
+	data->player.p_player = el.p_player;
+	data->map = el.map;
 	data->parse = el.parse;
 	data->player.radius = 5;
 	if (el.p_player == 'N')
@@ -150,21 +156,21 @@ void	init_player(t_data *data, t_elemts el)
 		data->player.rotationAngel = 0;
 	else if(el.p_player == 'W')
 		data->player.rotationAngel = M_PI;
-		
-	data->player.moveSpeed = 1;
-	data->player.rotationSpeed = 1 * (M_PI / 180);
 }
 
-int	collision(double x, double y, char **map)
+int	collision(double x, double y, char **map, t_data *data)
 {
 	int map_x;
 	int map_y;
 	
-	map_x = x / TILE_SIZE;
-	map_y = y / TILE_SIZE;
-
+	map_x = x / tile_size;
+	map_y = y / tile_size;
+	
 	if (map[map_y][map_x] == '1')
 		return 1;
+	else if (map[map_y][(int)(data->player.x /tile_size)] == '1' && map[(int)(data->player.y / tile_size)][map_x] == '1')
+        return 1;
+	
 	return 0;
 }
 
@@ -177,9 +183,9 @@ void find_horizontal_inter(t_data *img, t_ray *ray)
 	else if (ray->ray_angle <= M_PI)
 		ray->ray_dir_h = DOWN;
 		
-	ray->y_inter_h = floor(img->player.y/TILE_SIZE)*TILE_SIZE;
+	ray->y_inter_h = floor(img->player.y/tile_size)*tile_size;
 	if (ray->ray_dir_h == DOWN)
-		ray->y_inter_h += TILE_SIZE;
+		ray->y_inter_h += tile_size;
 	yside = ray->y_inter_h - img->player.y ;
 	xside = yside/tan(ray->ray_angle);
 	ray->x_inter_h = img->player.x + xside;
@@ -195,26 +201,26 @@ void find_vertical_inter(t_data *img, t_ray *ray)
 	else
 		ray->ray_dir_v = LEFT;
 		
-	ray->x_inter_v =floor(img->player.x / TILE_SIZE)*TILE_SIZE;
+	ray->x_inter_v =floor(img->player.x / tile_size)*tile_size;
 	if(ray->ray_dir_v == RIGHT)
-		ray->x_inter_v +=TILE_SIZE;
+		ray->x_inter_v +=tile_size;
 
 	ray->y_inter_v = img->player.y + (ray->x_inter_v - img->player.x) * tan(ray->ray_angle);
 }
 
 void step_horizontal(t_ray *ray)
 {
-	ray->y_step_h = TILE_SIZE;
+	ray->y_step_h = tile_size;
 	if(ray->ray_dir_h == UP)
-		ray->y_step_h = -TILE_SIZE;
+		ray->y_step_h = -tile_size;
 	ray->x_step_h = ray->y_step_h / tan(ray->ray_angle);
 }
 
 void step_vertical(t_ray *ray)
 {
-	ray->x_step_v = TILE_SIZE;
+	ray->x_step_v = tile_size;
 	if(ray->ray_dir_v == LEFT)
-		ray->x_step_v = -TILE_SIZE;
+		ray->x_step_v = -tile_size;
 	ray->y_step_v = ray->x_step_v * tan(ray->ray_angle);
 }
 
@@ -242,7 +248,7 @@ void	horizontal_distance(t_data *img, t_ray *ray)
 	step_horizontal(ray);
 	while(x_touch >= 0 && x_touch < WINDOW_WIDTH && y_touch >= 0 && y_touch < WINDOW_HEIGHT)
 	{
-		if(collision(x_touch, y_touch - y, img->map))
+		if(collision(x_touch, y_touch - y, img->map, img))
 		{
 			ray->horizontal_d = ecliden_distance(img->player.x, x_touch, img->player.y , y_touch);
 			ray->x_hori_wall = x_touch;
@@ -255,7 +261,6 @@ void	horizontal_distance(t_data *img, t_ray *ray)
 			y_touch+=ray->y_step_h;
 		}
 	}
-
 }
 
 void	vertical_distance(t_data *img, t_ray *ray)
@@ -274,7 +279,7 @@ void	vertical_distance(t_data *img, t_ray *ray)
 	step_vertical(ray);
 	while(x_touch >=0 && x_touch < WINDOW_WIDTH && y_touch >= 0 && y_touch < WINDOW_HEIGHT)
 	{
-		if(collision(x_touch - x, y_touch, img->map))
+		if(collision(x_touch - x, y_touch, img->map, img))
 		{
 			ray->vertical_d = ecliden_distance(img->player.x, x_touch, img->player.y , y_touch);
 			ray->x_vert_wall = x_touch;
@@ -289,28 +294,28 @@ void	vertical_distance(t_data *img, t_ray *ray)
 	}
 }
 
-void DDA(double X0, double Y0, double X1, double Y1, t_data *data ,int col)
-{
-    // calculate dx & dy
-    double dx = X1 - X0;
-    double dy = Y1 - Y0;
+// void DDA(double X0, double Y0, double X1, double Y1, t_data *data ,int col)
+// {
+//     // calculate dx & dy
+//     double dx = X1 - X0;
+//     double dy = Y1 - Y0;
 
-    // calculate steps required for generating pixels
-    double steps = fabs(dx) > fabs(dy) ? fabs(dx) : fabs(dy);
+//     // calculate steps required for generating pixels
+//     double steps = fabs(dx) > fabs(dy) ? fabs(dx) : fabs(dy);
  
-    // calculate increment in x & y for each steps
-    double Xinc = (double)(dx / steps);
-    double Yinc = (double)(dy / steps);
+//     // calculate increment in x & y for each steps
+//     double Xinc = (double)(dx / steps);
+//     double Yinc = (double)(dy / steps);
  
-    // Put pixel for each step
-    double X = X0;
-    double Y = Y0;
-    for (int i = 0; i <= steps; i++) {
-        my_mlx_pixel_put(data, X, Y, 0xf11100); 
-        X += Xinc;
-        Y += Yinc;
-    }
-}
+//     // Put pixel for each step
+//     double X = X0;
+//     double Y = Y0;
+//     for (int i = 0; i <= steps; i++) {
+//         my_mlx_pixel_put(data, X, Y, 0xf11100); 
+//         X += Xinc;
+//         Y += Yinc;
+//     }
+// }
 
 int	check_text(t_data *img, int id)
 {
@@ -345,21 +350,19 @@ int	check_text(t_data *img, int id)
 	return(0);
 }
 
-// int	ft_convert(int a, int b, int c)
-// {
-	
-// }
 
 
 void rendr_zab(t_data *img, int id, int	texture_offset_x)
 {
 	int	texture_offset_y;
 	int distance_from_top;
-	int i = (WINDOW_HEIGHT - img->rays[id].project_wall_height) / 2;
-	int j = 0;
+	int i ;
+	int j;
+
+	i = (WINDOW_HEIGHT - img->rays[id].project_wall_height) / 2;
+	j = 0;
 	while (j < i)
 	{
-		
 		my_mlx_pixel_put(img, id, j, img->parse.c.color);
 		j++;
 	}
@@ -372,7 +375,6 @@ void rendr_zab(t_data *img, int id, int	texture_offset_x)
 	}
 	while (i < WINDOW_HEIGHT)
 	{
-		
 		my_mlx_pixel_put(img, id, i, img->parse.f.color);
 		i++;
 	}
@@ -382,7 +384,6 @@ void finding_project_wall(t_data *img, int id)
 {
 	double correct_d;
 	int	texture_offset_x;
-	// int	texture_offset_y;
 	int distance_from_top;
 
 	correct_d = 0;
@@ -390,40 +391,17 @@ void finding_project_wall(t_data *img, int id)
 	if (img->rays[id].vertical_d > img->rays[id].horizontal_d)
 	{
 		correct_d = img->rays[id].horizontal_d * cos(img->rays[id].ray_angle - img->player.rotationAngel);
-		img->rays[id].project_wall_height = img->rays[id].project_player_dist * TILE_SIZE / correct_d;
-		texture_offset_x = (img->rays[id].x_hori_wall / TILE_SIZE - (int)img->rays[id].x_hori_wall / TILE_SIZE) * img->textures->width;
+		img->rays[id].project_wall_height = img->rays[id].project_player_dist * tile_size / correct_d;
+		texture_offset_x = (img->rays[id].x_hori_wall / tile_size - (int)img->rays[id].x_hori_wall / tile_size) * img->textures->width;
 		rendr_zab(img, id, texture_offset_x);
 	}
 	else
 	{
 		correct_d = img->rays[id].vertical_d * cos(img->rays[id].ray_angle - img->player.rotationAngel);
-		img->rays[id].project_wall_height = img->rays[id].project_player_dist * TILE_SIZE / correct_d;
-		texture_offset_x = (img->rays[id].y_vert_wall / TILE_SIZE - (int)img->rays[id].y_vert_wall / TILE_SIZE) * img->textures->width;
+		img->rays[id].project_wall_height = img->rays[id].project_player_dist * tile_size / correct_d;
+		texture_offset_x = (img->rays[id].y_vert_wall / tile_size - (int)img->rays[id].y_vert_wall / tile_size) * img->textures->width;
 		rendr_zab(img, id, texture_offset_x);
 	}
-
-	
-	// int i = (WINDOW_HEIGHT - img->rays[id].project_wall_height) / 2;
-	// int j = 0;
-	// while (j < i)
-	// {
-		
-	// 	my_mlx_pixel_put(img, id, j, 0xfff000);
-	// 	j++;
-	// }
-	// while (i < img->rays[id].project_wall_height + ((WINDOW_HEIGHT - img->rays[id].project_wall_height) / 2))
-	// {
-	// 	distance_from_top = i + (img->rays[id].project_wall_height/2 - WINDOW_HEIGHT/2);
-	// 	texture_offset_y = distance_from_top * ((float)img->textures->height / img->rays[id].project_wall_height);
-	// 	my_mlx_pixel_put(img, id, i, img->textures[1].texture_addr[(img->textures->width * texture_offset_y) + texture_offset_x]);
-	// 	i++;
-	// }
-	// while (i < WINDOW_HEIGHT)
-	// {
-		
-	// 	my_mlx_pixel_put(img, id, i, 0xffffFf);
-	// 	i++;
-	// }
 }
 
 
@@ -446,17 +424,7 @@ void	create_field_of_view(t_data *img)
 		//hadi kan7seb biha  distance mabin lwall ou player vertical
 		vertical_distance(img, &img->rays[id]);
 	
-		// if(img->rays[id].vertical_d > img->rays[id].horizontal_d)
-		// {
-			// DDA(img->player.x, img->player.y, img->rays[id].x_hori_wall, img->rays[id].y_hori_wall , img,0xff0000);
-			finding_project_wall(img, id);
-		// }
-		// else
-		// {
-		// 	finding_project_wall(img, id);
-		// 	// DDA(img->player.x, img->player.y, img->rays[id].x_vert_wall, img->rays[id].y_vert_wall , img,0xff0000);
-		// }
-		// }		
+		finding_project_wall(img, id);	
 		rayangle += FOV_ANGLE / NUM_RAYS;
 		id++;
 	}
@@ -500,6 +468,8 @@ int key_pressed(int keycode, t_data *img)
 		img->player.sideDirection = -1;
 	else if (keycode == D)
 		img->player.sideDirection = 1;
+	else if(keycode == ESC)
+		exit(0);
 	return (0);
 	
 }
@@ -520,7 +490,7 @@ int key_handler(t_data *img)
 		new_x = img->player.x + move_step * cos(img->player.rotationAngel);
 		new_y = img->player.y + move_step * sin(img->player.rotationAngel);
 
-		if (collision(new_x, new_y, img->map) == 0)
+		if (collision(new_x, new_y, img->map, img) == 0)
 		{
 			img->player.x = new_x;
 			img->player.y = new_y; 
@@ -530,7 +500,7 @@ int key_handler(t_data *img)
 	{
 		new_x = img->player.x + img->player.moveSpeed * cos(img->player.rotationAngel + ((M_PI / 2)*img->player.sideDirection));
 		new_y = img->player.y + img->player.moveSpeed * sin(img->player.rotationAngel + ((M_PI /2)*img->player.sideDirection));
-		if(collision(new_x ,new_y, img->map) == 0)
+		if(collision(new_x ,new_y, img->map, img) == 0)
 		{
 			img->player.x =  new_x;
 			img->player.y =  new_y;

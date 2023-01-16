@@ -6,7 +6,7 @@
 #    By: waelhamd <waelhamd@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/12/01 10:00:27 by waelhamd          #+#    #+#              #
-#    Updated: 2023/01/10 21:16:15 by waelhamd         ###   ########.fr        #
+#    Updated: 2023/01/16 13:58:23 by waelhamd         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,12 +18,12 @@ CC = cc
 
 NAME = cub3d
 
-%.o: %.c
+%.o: %.c cub3d.h
 	$(CC) $(CFLAGS) -c $<
 
 all : $(NAME)
 
-$(NAME): $(OBJ)
+$(NAME): $(OBJ) cub3d.h
 		$(CC) $(CFLAGS) $(OBJ) -lmlx -framework OpenGL -framework AppKit -o $(NAME)
 
 clean :
