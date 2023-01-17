@@ -30,3 +30,34 @@ int	ft_tolower(int c)
 	else
 		return (c);
 }
+
+void	free2d(char **tab)
+{
+	int	i;
+
+	i = 0;
+	while (tab[i])
+	{
+		free(tab[i]);
+		i++;
+	}
+	free(tab);
+}
+
+int	twodlen(char **check)
+{
+	int	i;
+
+	i = 0;
+	while (check[i])
+		i++;
+	return (i);
+}
+
+int	max(int a, int b)
+{
+	if (a < b)
+		return (b);
+	else
+		return (a);
+}

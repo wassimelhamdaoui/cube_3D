@@ -6,7 +6,7 @@
 /*   By: waelhamd <waelhamd@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/01 10:00:37 by waelhamd          #+#    #+#             */
-/*   Updated: 2023/01/16 20:43:06 by waelhamd         ###   ########.fr       */
+/*   Updated: 2023/01/17 22:01:55 by waelhamd         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,80 +41,51 @@ void	my_mlx_pixel_put(t_data *data, int x, int y, int color)
 		*(unsigned int*)dst = color;
 	}
 }
+ 
 
-void	bresenham(int x1,int y1,int x2, int y2, t_data *img, int color)
+void draw_rectangle(t_data *img, int x, int y, int color)
 {
-	int	x;
-	int	y;
-	int	error[2];
-
-	error[0] = abs (x1 - x2) - abs(y1 - y2);
-	x = x1;
-	y = y1;
-	while (x != x2 || y != y2)
+	int ax_x;
+	int ax_y;
+	int i = y;
+	ax_x = x +tile_size;
+	ax_y = y+tile_size;
+	while(x <= ax_x)
 	{
-		my_mlx_pixel_put(img, x, y, color);
-		error[1] = error[0] * 2;
-		if (error[1] > -abs(y1 - y2))
+		y = i;
+		while(y <= ax_y)
 		{
-			error[0] -= abs(y1 - y2);
-			x += max1(x1, x2);
+			if(y%tile_size == 0 || x%tile_size == 0)
+				my_mlx_pixel_put(img, x, y, 0x000000);
+			else
+			my_mlx_pixel_put(img, x, y, color);
+			y++;
 		}
-		if (error[1] < abs(x1 - x2))
-		{
-			error[0] += abs(x1 - x2);
-			y += max1(y1, y2);
-		}
+		x++;
 	}
 }
 
-// void draw_rectangle(t_data *img, int x, int y, int color)
-// {
-// 	int ax_x;
-// 	int ax_y;
-// 	int i = y;
-// 	ax_x = x +TILE_SIZE;
-// 	ax_y = y+TILE_SIZE;
-// 	while(x <= ax_x)
-// 	{
-// 		y = i;
-// 		while(y <= ax_y)
-// 		{
-// 			if(y%TILE_SIZE == 0 || x%TILE_SIZE == 0)
-// 				my_mlx_pixel_put(img, x, y, 0x000000);
-// 			else
-// 			my_mlx_pixel_put(img, x, y, color);
-// 			y++;
-// 		}
-// 		x++;
-// 	}
-// }
+void map2D(t_data *img)
+{
+	int j;
+	int i;
+	int color;
 
-// void map2D(t_data *img, t_data *mini)
-// {
-// 	int j;
-// 	int i;
-// 	int color;
-// 	int mintil = MINI_HEIGHT / img->line;
-// 	mini->img = mlx_new_image(img->mlx, 100, 100);
-// 	mini->addr = mlx_get_data_addr(mini->img, &mini->bits_per_pixel, &mini->line_length,
-// 								&mini->endian);
-
-// 	i = 0;
-// 	while(i*mintil < img->line * mintil)
-// 	{
-// 		j = 0;
-// 		while(j*mintil < img->colone * mintil)
-// 		{
-// 			color = (img->map[i][j] == '1') ?  0x326656: 0x000000;
-// 			if(img->map[i][j] == ' ')
-// 				color = 0x000000;
-// 			draw_rectangle(img, j*mintil, i*mintil, color);
-// 			j++;
-// 		}
-// 		i++;
-// 	}
-// }
+	i = 0;
+	while(i*tile_size < img->line * tile_size)
+	{
+		j = 0;
+		while(j*tile_size < img->colone * tile_size)
+		{
+			color = (img->map[i][j] == '1') ?  0x326656: 0x000000;
+			if(img->map[i][j] == ' ')
+				color = 0x000000;
+			draw_rectangle(img, j*tile_size, i*tile_size, color);
+			j++;
+		}
+		i++;
+	}
+}
 
 void	init_textures(t_data *img, t_elemts el)
 {
@@ -140,7 +111,7 @@ void	init_player(t_data *data, t_elemts el)
 		tile_size = WINDOW_WIDTH/data->colone;
 	else
 		tile_size = WINDOW_HEIGHT/data->line;
-	data->player.moveSpeed = 1;
+	data->player.moveSpeed = 3;
 	data->player.rotationSpeed = 3 * (M_PI / 180);
 	data->player.x = (el.x * tile_size) + tile_size/2;
 	data->player.y = (el.y * tile_size) + tile_size/2;
@@ -171,6 +142,19 @@ int	collision(double x, double y, char **map, t_data *data)
 	else if (map[map_y][(int)(data->player.x /tile_size)] == '1' && map[(int)(data->player.y / tile_size)][map_x] == '1')
         return 1;
 	
+	return 0;
+}
+
+int	collision_ray(double x, double y, char **map, t_data *data)
+{
+	int map_x;
+	int map_y;
+	
+	map_x = x / tile_size;
+	map_y = y / tile_size;
+	
+	if (map[map_y][map_x] == '1')
+		return 1;
 	return 0;
 }
 
@@ -248,7 +232,7 @@ void	horizontal_distance(t_data *img, t_ray *ray)
 	step_horizontal(ray);
 	while(x_touch >= 0 && x_touch < WINDOW_WIDTH && y_touch >= 0 && y_touch < WINDOW_HEIGHT)
 	{
-		if(collision(x_touch, y_touch - y, img->map, img))
+		if(collision_ray(x_touch, y_touch - y, img->map, img))
 		{
 			ray->horizontal_d = ecliden_distance(img->player.x, x_touch, img->player.y , y_touch);
 			ray->x_hori_wall = x_touch;
@@ -279,7 +263,7 @@ void	vertical_distance(t_data *img, t_ray *ray)
 	step_vertical(ray);
 	while(x_touch >=0 && x_touch < WINDOW_WIDTH && y_touch >= 0 && y_touch < WINDOW_HEIGHT)
 	{
-		if(collision(x_touch - x, y_touch, img->map, img))
+		if(collision_ray(x_touch - x, y_touch, img->map, img))
 		{
 			ray->vertical_d = ecliden_distance(img->player.x, x_touch, img->player.y , y_touch);
 			ray->x_vert_wall = x_touch;
@@ -294,28 +278,28 @@ void	vertical_distance(t_data *img, t_ray *ray)
 	}
 }
 
-// void DDA(double X0, double Y0, double X1, double Y1, t_data *data ,int col)
-// {
-//     // calculate dx & dy
-//     double dx = X1 - X0;
-//     double dy = Y1 - Y0;
+void DDA(double X0, double Y0, double X1, double Y1, t_data *data ,int col)
+{
+    // calculate dx & dy
+    double dx = X1 - X0;
+    double dy = Y1 - Y0;
 
-//     // calculate steps required for generating pixels
-//     double steps = fabs(dx) > fabs(dy) ? fabs(dx) : fabs(dy);
+    // calculate steps required for generating pixels
+    double steps = fabs(dx) > fabs(dy) ? fabs(dx) : fabs(dy);
  
-//     // calculate increment in x & y for each steps
-//     double Xinc = (double)(dx / steps);
-//     double Yinc = (double)(dy / steps);
+    // calculate increment in x & y for each steps
+    double Xinc = (double)(dx / steps);
+    double Yinc = (double)(dy / steps);
  
-//     // Put pixel for each step
-//     double X = X0;
-//     double Y = Y0;
-//     for (int i = 0; i <= steps; i++) {
-//         my_mlx_pixel_put(data, X, Y, 0xf11100); 
-//         X += Xinc;
-//         Y += Yinc;
-//     }
-// }
+    // Put pixel for each step
+    double X = X0;
+    double Y = Y0;
+    for (int i = 0; i <= steps; i++) {
+        my_mlx_pixel_put(data, X, Y, 0xf11100); 
+        X += Xinc;
+        Y += Yinc;
+    }
+}
 
 int	check_text(t_data *img, int id)
 {
@@ -352,16 +336,16 @@ int	check_text(t_data *img, int id)
 
 
 
-void rendr_zab(t_data *img, int id, int	texture_offset_x)
+void rendring(t_data *img, int id, int	texture_offset_x)
 {
 	int	texture_offset_y;
 	int distance_from_top;
 	int i ;
 	int j;
 
-	i = (WINDOW_HEIGHT - img->rays[id].project_wall_height) / 2;
+	i = ((WINDOW_HEIGHT - img->rays[id].project_wall_height) / 2) + 1;
 	j = 0;
-	while (j < i)
+	while (j <= i)
 	{
 		my_mlx_pixel_put(img, id, j, img->parse.c.color);
 		j++;
@@ -393,19 +377,19 @@ void finding_project_wall(t_data *img, int id)
 		correct_d = img->rays[id].horizontal_d * cos(img->rays[id].ray_angle - img->player.rotationAngel);
 		img->rays[id].project_wall_height = img->rays[id].project_player_dist * tile_size / correct_d;
 		texture_offset_x = (img->rays[id].x_hori_wall / tile_size - (int)img->rays[id].x_hori_wall / tile_size) * img->textures->width;
-		rendr_zab(img, id, texture_offset_x);
+		rendring(img, id, texture_offset_x);
 	}
 	else
 	{
 		correct_d = img->rays[id].vertical_d * cos(img->rays[id].ray_angle - img->player.rotationAngel);
 		img->rays[id].project_wall_height = img->rays[id].project_player_dist * tile_size / correct_d;
 		texture_offset_x = (img->rays[id].y_vert_wall / tile_size - (int)img->rays[id].y_vert_wall / tile_size) * img->textures->width;
-		rendr_zab(img, id, texture_offset_x);
+		rendring(img, id, texture_offset_x);
 	}
 }
 
 
-void	create_field_of_view(t_data *img)
+void	start_game(t_data *img)
 {
 	int		id;
 	double	rayangle;
@@ -415,43 +399,14 @@ void	create_field_of_view(t_data *img)
 	while (id < NUM_RAYS)
 	{
 		img->rays[id].ray_angle = norm_angle(rayangle);
-		//hadi kan7seb biha intersection horizontal
 		find_horizontal_inter(img, &img->rays[id]);
-		//hadi kan7seb biha intersection vertical
 		find_vertical_inter(img, &img->rays[id]);
-		//hadi kan7seb biha  distance mabin lwall ou player horizontal
 		horizontal_distance(img, &img->rays[id]);
-		//hadi kan7seb biha  distance mabin lwall ou player vertical
 		vertical_distance(img, &img->rays[id]);
-	
 		finding_project_wall(img, id);	
 		rayangle += FOV_ANGLE / NUM_RAYS;
 		id++;
 	}
-}
-
-
-
-void draw_player(t_data *img)
-{
-	double teta;
-	int x;
-	int y;
-	int r = 0;
-	// while(r <= img->player.radius)
-	// {
-	// 	teta = 0;
-	// 	while (teta <= 360)
-	// 	{
-	// 		x =r*cos(teta *( M_PI / 180));
-	// 		y =r*sin(teta * (M_PI / 180));
-	// 		// printf("x = %d, y = %d\n", (int)(img->player.x), (int)(img->player.y));
-	// 		my_mlx_pixel_put(img, img->player.x + x, img->player.y + y, 0xff0000);
-	// 		teta+=1;
-	// 	}
-	// 	r+=1;
-	// }
-	create_field_of_view(img);
 }
 
 int key_pressed(int keycode, t_data *img)
@@ -474,47 +429,60 @@ int key_pressed(int keycode, t_data *img)
 	
 }
 
+void	turndirection(t_data *img)
+{
+	img->player.rotationAngel += img->player.turnDirection * img->player.rotationSpeed;
+	img->player.rotationAngel = norm_angle(img->player.rotationAngel);
+}
+
+void	walkdirection(t_data *img)
+{
+	double new_x;
+	double new_y;
+	int move_step;
+
+	move_step = img->player.walkDirection * img->player.moveSpeed;
+	new_x = img->player.x + move_step * cos(img->player.rotationAngel);
+	new_y = img->player.y + move_step * sin(img->player.rotationAngel);
+	if (collision(new_x, new_y, img->map, img) == 0)
+	{
+		img->player.x = new_x;
+		img->player.y = new_y; 
+	}
+}
+
+void	sidedirection(t_data *img)
+{
+	double new_x;
+	double new_y;
+
+	new_x = img->player.x + img->player.moveSpeed * cos(img->player.rotationAngel + ((M_PI / 2)*img->player.sideDirection));
+	new_y = img->player.y + img->player.moveSpeed * sin(img->player.rotationAngel + ((M_PI /2)*img->player.sideDirection));
+	if(collision(new_x ,new_y, img->map, img) == 0)
+	{
+		img->player.x =  new_x;
+		img->player.y =  new_y;
+	}
+}
+
 int key_handler(t_data *img)
 {
-	double new_x=0;
-	double new_y=0;
-	int move_step=0;
-	if (img->player.turnDirection != 0)
-	{
-		img->player.rotationAngel += img->player.turnDirection * img->player.rotationSpeed;
-		img->player.rotationAngel = norm_angle(img->player.rotationAngel);
-	}
-	else if (img->player.walkDirection != 0)
-	{
-		move_step = img->player.walkDirection * img->player.moveSpeed;
-		new_x = img->player.x + move_step * cos(img->player.rotationAngel);
-		new_y = img->player.y + move_step * sin(img->player.rotationAngel);
-
-		if (collision(new_x, new_y, img->map, img) == 0)
-		{
-			img->player.x = new_x;
-			img->player.y = new_y; 
-		}
-	}
-	else if(img->player.sideDirection != 0)
-	{
-		new_x = img->player.x + img->player.moveSpeed * cos(img->player.rotationAngel + ((M_PI / 2)*img->player.sideDirection));
-		new_y = img->player.y + img->player.moveSpeed * sin(img->player.rotationAngel + ((M_PI /2)*img->player.sideDirection));
-		if(collision(new_x ,new_y, img->map, img) == 0)
-		{
-			img->player.x =  new_x;
-			img->player.y =  new_y;
-		}
-	}
 	
+	if (img->player.turnDirection != 0)
+		turndirection(img);
+	else if (img->player.walkDirection != 0)
+		walkdirection(img);
+	else if(img->player.sideDirection != 0)
+		sidedirection(img);
+	mlx_destroy_image(img->mlx, img->img);
 	mlx_clear_window(img->mlx, img->mlx_win);
 	img->img = mlx_new_image(img->mlx, WINDOW_WIDTH, WINDOW_HEIGHT);
 	img->addr = mlx_get_data_addr(img->img, &img->bits_per_pixel, &img->line_length,
 								&img->endian);
-	// map2D(img);
-	draw_player(img);
+	map2D(img);
+	start_game(img);
 	mlx_put_image_to_window(img->mlx, img->mlx_win, img->img, 0, 0);
-	return 0;
+	return (0);
 }
 
 int key_release(int keycode, t_data *img)
@@ -552,19 +520,7 @@ int	main(int ac, char **av)
 	
 	init_player(&img, el);
 	init_textures(&img, el);
-	// map2D(&img, &mini);
-	draw_player(&img);
-
-	int len = 0;
-	// for (int i = 0; i < 360; i++)
-	// {
-	// 	for (int j = 0; j < 360; j++)
-	// 	{
-	// 		my_mlx_pixel_put(&img, j, i, img.textures[1].texture_addr[len]);
-	// 		len++;
-	// 	}
-	// 	len++;
-	// }
+	start_game(&img);
 
 	mlx_put_image_to_window(img.mlx, img.mlx_win, img.img, 0, 0);
 	

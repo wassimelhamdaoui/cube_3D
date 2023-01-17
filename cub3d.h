@@ -6,7 +6,7 @@
 /*   By: waelhamd <waelhamd@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/01 10:00:58 by waelhamd          #+#    #+#             */
-/*   Updated: 2023/01/16 20:30:32 by waelhamd         ###   ########.fr       */
+/*   Updated: 2023/01/17 21:51:48 by waelhamd         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 #include <sys/stat.h>
 #include "./libft/libft.h"
 #include "get_next_line.h"
+
 
 # define LEFT_KEY 123
 # define RIGHT_KEY 124
@@ -175,7 +176,16 @@ char		**ft_realloc(char **map, char *line, int size);
 char		*to_low(char *ptr);
 char		*ft_add_spaces(char *str, int size);
 char		**ft_split(char const *s, char c);
-t_elemts	ft_readfile(char *path);
+int			ft_readfile(char *path, t_elemts *elements);
 t_elemts	parsing(int ac, char **av);
+void	free2d(char **tab);
+int		twodlen(char **check);
+int		max(int a, int b);
+int	ft_check_valid_n(char *str);
+int	ft_check_color(char *check, t_color *color);
+char	**ft_realloc(char **map, char *line, int size);
+char	*to_low(char *ptr);
+int	ft_check_acces(char *path);
+char	**create_matric(t_elemts *el);
 
 #endif

@@ -6,11 +6,11 @@
 #    By: waelhamd <waelhamd@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/12/01 10:00:27 by waelhamd          #+#    #+#              #
-#    Updated: 2023/01/16 13:58:23 by waelhamd         ###   ########.fr        #
+#    Updated: 2023/01/17 21:47:28 by waelhamd         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-SRC = main.c parsing.c get_next_line.c get_next_line_utils.c utils.c utils1.c utils2.c
+SRC = main.c parsing.c get_next_line.c get_next_line_utils.c utils.c utils1.c utils2.c check_xpm_fc.c clone_from_file.c check_map.c parsing_init.c
 OBJ = $(SRC:.c=.o)
 
 CFLAGS =  -Imlx
